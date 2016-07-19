@@ -1,0 +1,118 @@
+<html ng-app="EsConnector">
+  <head>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8">      
+      <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script src="elasticsearch.angular.js"></script>
+      <script src="es_connect.js"></script>
+      <script src="main.js"></script>
+      <link rel="stylesheet" type="text/css" href="reset.css"/>
+      <link rel="stylesheet" type="text/css" href="style.css"/>
+       
+    <script>
+    </script>
+  </head>
+  <body>
+      <div ng-controller="QueryController">
+          <div id="search_bar">
+              </br>
+            <table width="100%" style="padding-top:10px">
+            <tr width="100%">
+                <td width="30%"><input type="text"  id="search_box" ng-model="query_term" placeholder="Enter what you wish to eat ? ex: chicken tikka, chole"/></td>
+                <td width="30%"><input type="text" width="100%" id="address" ng-model="location"></input></td>
+                <td><p style="color:white;font-family:sans-serif"><strong>Show Nearest First</strong><input type="checkbox" ng-model="sort_d" ng-init="sort_d=false"/></p></td>
+              <td><p style="color:white;font-family:sans-serif"><strong>Show Highest Rated First</strong><input type="checkbox"  ng-model="sort_r" ng-init="sort_r=false"/></p></td>
+            </tr>
+          <tr>
+            <td><button id="back" class="my_button">Back</button></td><td></td><td></td><td>
+            <button id="search_button" class="my_button" ng-click="search1()" >Search</button></td>                
+            </tr>
+            </table>  
+          </div>
+    <p id="title_quote" ><strong>Find My Dish</strong></p>
+      <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&libraries=places&language=en-AU"></script>
+        <script src="https://apis.google.com/js/plus.js?onload=init"></script>
+      <script>
+            var autocomplete = new google.maps.places.Autocomplete($("#address")[0], {});
+
+            google.maps.event.addListener(autocomplete, 'place_changed', function() {
+                var place = autocomplete.getPlace();
+                console.log(place.address_components);
+            });
+        </script>
+          <div id="displayList">
+              <table width="100%">
+                  <tr ng-repeat="item in hits" class="dish_list_row" width="100%" style="padding-top:10px">
+                      <td>
+                          <div ng-click="search2(item['_source'])" class="item_container">
+                            <table  width="100%">
+                                 <tr><td class="dish_name" width="50%"><p>{{item['_source']['dish_name']}}</p></td><td class="dish_price"><p>{{item['_source']['dish_price']}}</p></td></tr>
+                                 <tr><td class="dish_description"><p>{{item['_source']['dish_description']}}</p></td><td class="res_rating"><p>Rating: {{item['_source']['res_rating']}}</p></td></tr>
+                                 <tr><td class="res_name"><p>{{item['_source']['res_name']}}</p></td><td class="distance"><p> {{item['_score']}} {{item['sort'][0]}}Miles</p></td></tr>
+                            </table>
+                          </div>
+                      </td>  
+                  </tr>
+              </table>
+          </div>
+            <div id="rest_data" style="display:none">
+                <div id="map1"></div>
+                <table width="100%" id="rest_details">
+                    <tr >
+                        <td ><p id="rest_name"><span> {{item1[0]['_source']['name']}}</span></p></td><td><p><span style="font-weight:bold;">Rating: </span>{{item1[0]['_source']['rating']}}</p></td><td style="display:none"><p id="dest_lat">{{item1[0]['_source']['lat']}}</p></td>
+                                  <td style="display:none"><p id="dest_lon">{{item1[0]['_source']['lon']}}</p></td>
+                    </tr>
+                    <tr>
+                        <td><p id="dish_name_display"><span style="font-weight:bold;">Dish Name: </span>{{clicked_data['dish_name']}}</p></td><td><p id="dish_price_display"><span style="font-weight:bold;">Price: </span>{{clicked_data['dish_price']}}</p></td>
+                    </tr>
+                    <tr>
+                        <td><p><span style="font-weight:bold;">Cuisines Served:</span><span ng-repeat="p_d in item1[0]['_source']['category']">{{p_d[0]}} </span></p></td>
+                    </tr>                    
+                    <tr>
+                        <td><img ng-src="{{item1[0]['_source']['res_image']}}"></td><td class="address_data"><p>{{item1[0]['_source']['street_address']}}</p><p>{{item1[0]['_source']['locality']}}</p><p> {{item1[0]['_source']['postal_code']}}</p><p>Ph: {{item1[0]['_source']['phone_number']}}</p></td>
+                    </tr>
+                    <tr>
+                        
+                    </tr>
+                    <tr><td><p><a target="_blank" href="{{item1[0]['_source']['url']}}">Yelp Page</a></p></td><td id="open_now"></td></tr>                   
+                    <tr><td>                        
+                            <div id="map" ></div>
+                            
+                    </td>
+                    </tr>    
+                </table>
+                
+                <div id="tabs">
+                    <div id="review">Reviews</div>
+                    <div id="menu">Menu</div>
+                    <div id="other_review">Other Reviews</div>
+                    <div id="rev_data">
+                        <table ng-repeat="r in clicked_data['review']" style="margin-top:10px">
+                            <tr>
+                                <td style="border-bottom: solid 1px black;color:black;margin-top:5px;font-size:14px;padding-bottom:5px;padding-top:5px"><p style="color:crimson;font-family:sans-serif;font-weight:bold">{{$index+1}}.</p><p>{{r}}</p></td>
+                            </tr>                            
+                        </table></div>
+                    <div id="menu_data" style="display:none">                        
+                        <table ng-repeat="dish_item in menu" width="100%">
+                            <tr width="100%">
+                                <td width="50%" class="menu_dish_name"><p><strong>{{dish_item['dish_name']}}</p></td><td class="menu_dish_price"><p>{{dish_item['dish_price']}}</p></td>
+                            </tr><tr>     
+                                <td class="menu_dish_type"><p>{{dish_item['dish_type']}}</p></td>
+                            </tr><tr> 
+                                <td class="menu_dish_description"><p>{{dish_item['dish_description']}}</p></td>
+                            </tr>                            
+                        </table>
+                    </div>
+                    <div id="other_rev_data" style="display:none">
+                        <table ng-repeat="r in reviews" style="margin-top:10px">
+                            <tr>
+                                <td style="border-bottom: solid 1px black;color:black;margin-top:5px;font-size:14px;padding-bottom:5px;padding-top:5px"><p style="color:crimson;font-family:sans-serif;font-weight:bold">{{$index+1}}.</p><p>{{r}}</p></td>
+                            </tr>                            
+                        </table></div>
+                    </div>
+                </div>
+            </div>
+      </div>
+    <div style="width:100%;height:10%;color:white;text-align:center;font-style:sans-serif;font-size:17px;margin-top:10px;font-weight:bold"><p>Happy Eating</p></div>
+    </body>
+</html>
